@@ -83,10 +83,9 @@ if __name__ == "__main__":
         if(fs9922_port == None):
             print(f"Couldn't find {port_name}. Please enter different name:")
 
-        dmm = FS9922_DMM3()
-
-        with serial.Serial(fs9922_port, 2400) as ser:
-            while True:
-                line = ser.readline()
-                dmm.update(line)
-                print(dmm.get_data_str(), dmm.get_prefix() + dmm.get_unit(), dmm.get_mode())
+    dmm = FS9922_DMM3()
+    with serial.Serial(fs9922_port, 2400) as ser:
+        while True:
+            line = ser.readline()
+            dmm.update(line)
+            print(dmm.get_data_str(), dmm.get_prefix() + dmm.get_unit(), dmm.get_mode())
