@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<head>
+	<title>DMM</title>
+</head>
+
+<body>
+	<span id="dmm-target">NOT LOADED</span>
+</body>
+
+<script>
+console.log("Hello!");
+var targetContainer = document.getElementById("dmm-target");
+var eventSource = new EventSource("/dmm_stream");
+console.log("created source!");
+
+eventSource.onmessage = function(e) {
+	console.log(e.data);
+  targetContainer.innerHTML = e.data;
+};
+
+</script>

@@ -1,9 +1,6 @@
 import serial
 from serial.tools import list_ports
 
-ports = list_ports.comports()
-fs9922_port = None
-
 class Flag:
     def __init__(self, name, byte, bit):
         self.name = name
@@ -25,12 +22,24 @@ class FS9922_DMM3:
         self.measure_modes = [Flag('HOLD', 0x7, 1), Flag('REL', 0x7, 2), Flag('MIN', 0x8, 4), Flag('MAX', 0x8, 5)]
 
     def update(self, packet):
-        self.sign = packet[0]
+        if(len(packet) != 14):
+            return # really should probably raise exception
+
+        self.sign = chr(packet[0])
         self.data = " 0L " if packet[1:5].decode("utf-8") == "?0:?" else packet[1:5].decode("utf-8")
         self.point = 3 if packet[6] == 0x34 else int(packet[6]) - 0x30
 
         for attrib_flag in (self.prefixes + self.units + self.modes + self.measure_modes):
             attrib_flag.update(packet)
+
+    def serialize(self):
+        return {
+            "data": self.get_data_str(),
+            "prefixes": [prefix.name for prefix in self.prefixes if prefix.en],
+            "units": [unit.name for unit in self.units if unit.en],
+            "modes": [mode.name for mode in self.modes if mode.en],
+            "measure_modes": [measure_mode.name for measure_mode in self.measure_modes if measure_mode.en]
+        }
     
     def get_data_str(self):
         data_str = self.data
@@ -39,6 +48,9 @@ class FS9922_DMM3:
 
         if(self.point > 0):
             data_str = data_str[:self.point] + '.' + data_str[self.point:]
+
+        if(self.sign == '-'):
+            data_str = '-' + data_str
         
         return data_str
 
@@ -70,6 +82,9 @@ class FS9922_DMM3:
         return '' 
 
 if __name__ == "__main__":
+    ports = list_ports.comports()
+    fs9922_port = None
+
     for port, desc, hwid in sorted(ports):
         print(f"{port}: {desc} [{hwid}]")
     
